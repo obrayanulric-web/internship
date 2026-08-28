@@ -1,5 +1,6 @@
 from pydantic import BaseModel, EmailStr
 
+
 class UserCreate(BaseModel):
     name: str
     email: EmailStr
@@ -14,6 +15,17 @@ class UserLogin(BaseModel):
 class UserUpdate(UserCreate):
     id: int
 
+
+class UserRead(BaseModel):
+    id: int
+    name: str
+    email: EmailStr
+    is_admin: bool
+
+    class Config:
+        from_attributes = True
+
+
 class TokenResponse(BaseModel):
-    access_token : str
+    access_token: str
     token_type: str

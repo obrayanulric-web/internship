@@ -5,6 +5,7 @@ import { Button } from "./common/Button";
 import api from "../api/axios";
 import axios from "axios";
 import { useNavigate, Link } from "react-router-dom";
+import toast from "react-hot-toast";
 
 export const RegisterForm: React.FC = () => {
   const [formData, setFormData] = useState({
@@ -13,7 +14,6 @@ export const RegisterForm: React.FC = () => {
     password: "",
   });
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState("");
   const navigate = useNavigate();
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -24,12 +24,12 @@ export const RegisterForm: React.FC = () => {
     e.preventDefault();
 
     setLoading(true);
-    setError("");
+    const toastId = toast.loading("Creating your account...");
 
     try {
       const response = await api.post("/Auth/register", formData);
 
-      // Save auth token/session if your API returns one upon registration
+      // Save auth token/session if API returns one
       if (response.data?.token) {
         localStorage.setItem("token", response.data.token);
       }
@@ -40,19 +40,25 @@ export const RegisterForm: React.FC = () => {
         password: "",
       });
 
-      // Redirect directly to properties on success
-      navigate("/properties");
+      toast.success("Account created successfully! Please sign in.", {
+        id: toastId,
+      });
+
+      // Brief delay ensures the toast renders before changing routes
+      setTimeout(() => {
+        navigate("/login");
+      }, 300);
     } catch (error: unknown) {
       console.error(error);
 
+      let errorMessage = "An unexpected error occurred.";
       if (axios.isAxiosError(error)) {
-        setError(
+        errorMessage =
           error.response?.data?.detail ||
-            "Something went wrong. Please try again."
-        );
-      } else {
-        setError("An unexpected error occurred.");
+          "Something went wrong. Please try again.";
       }
+
+      toast.error(errorMessage, { id: toastId });
     } finally {
       setLoading(false);
     }
@@ -71,12 +77,6 @@ export const RegisterForm: React.FC = () => {
       </div>
 
       <form onSubmit={handleSubmit} className="space-y-4">
-        {error && (
-          <div className="p-3 bg-red-50 border border-red-200 text-red-700 text-xs">
-            {error}
-          </div>
-        )}
-        
         <Input
           id="name"
           type="text"
@@ -114,7 +114,7 @@ export const RegisterForm: React.FC = () => {
           required
         />
 
-        <Button type="submit">
+        <Button type="submit" disabled={loading}>
           {loading ? "Creating Account..." : "Create Account"}
         </Button>
       </form>

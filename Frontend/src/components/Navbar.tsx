@@ -7,6 +7,8 @@ interface UserProfile {
   id: number;
   name: string;
   email: string;
+  is_admin?: boolean;
+  role?: string;
 }
 
 interface NavbarProps {
@@ -15,47 +17,38 @@ interface NavbarProps {
 
 export const Navbar: React.FC<NavbarProps> = ({ isAuthenticated }) => {
   const [isOpen, setIsOpen] = useState(false);
-  const [user, setUser] = useState<UserProfile | null>(null);
+  const [user, setUser] = useState<UserProfile | null>(() => {
+    const cachedUser = localStorage.getItem('user');
+    if (cachedUser) {
+      try {
+        return JSON.parse(cachedUser);
+      } catch {
+        return null;
+      }
+    }
+    return null;
+  });
+
   const location = useLocation();
 
   const fetchCurrentUser = async () => {
-    const token =
-      localStorage.getItem('access_token') ||
-      localStorage.getItem('token') ||
-      localStorage.getItem('accessToken');
+    const token = localStorage.getItem('access_token');
 
     if (!token) {
       setUser(null);
       return;
     }
 
-    const cachedUser = localStorage.getItem('user');
-    if (cachedUser) {
-      try {
-        setUser(JSON.parse(cachedUser));
-      } catch {
-      }
-    }
-
     try {
-      const response = await api.get<UserProfile>('/Auth/me', {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
-
+      const response = await api.get<UserProfile>('/Auth/me');
       if (response.data) {
         setUser(response.data);
         localStorage.setItem('user', JSON.stringify(response.data));
       }
     } catch (error: any) {
       console.error('Failed to fetch current user:', error);
-
       if (error?.response?.status === 401) {
-        localStorage.removeItem('access_token');
-        localStorage.removeItem('token');
-        localStorage.removeItem('accessToken');
-        localStorage.removeItem('user');
+        localStorage.clear();
         setUser(null);
       }
     }
@@ -79,6 +72,9 @@ export const Navbar: React.FC<NavbarProps> = ({ isAuthenticated }) => {
   const closeMenu = () => setIsOpen(false);
 
   const userInitial = user?.name ? user.name.charAt(0).toUpperCase() : 'U';
+  
+  // Routes admins to /admin/dashboard and normal users to /profile
+  const userPath = user?.is_admin ? '/admin/dashboard' : '/profile';
 
   const navLinkStyle = ({ isActive }: { isActive: boolean }) =>
     `text-sm font-medium transition duration-200 ${
@@ -113,7 +109,7 @@ export const Navbar: React.FC<NavbarProps> = ({ isAuthenticated }) => {
         <div className="hidden md:flex items-center">
           {user ? (
             <Link
-              to="/dashboard"
+              to={userPath}
               className="flex items-center space-x-3 group"
               title={`Logged in as ${user.name}`}
             >
@@ -160,7 +156,7 @@ export const Navbar: React.FC<NavbarProps> = ({ isAuthenticated }) => {
           <div className="pt-2">
             {user ? (
               <Link
-                to="/dashboard"
+                to={userPath}
                 onClick={closeMenu}
                 className="flex items-center space-x-3 w-full p-2 bg-[#f0f4f2] border border-[#0f382c]/20 rounded-none hover:bg-[#0f382c] hover:text-white transition group"
               >

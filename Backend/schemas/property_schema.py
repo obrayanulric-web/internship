@@ -13,7 +13,7 @@ class PropertyCreate(BaseModel):
     currency: str
 
     purpose: Literal["rent", "sale"] = "rent"
-
+ 
     type: Literal[
         "Apartment",
         "Villa",
