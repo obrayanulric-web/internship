@@ -1,12 +1,18 @@
 import React from "react";
 import { MapPin, Bed, Bath, Move, Heart } from "lucide-react";
+import { Link } from "react-router-dom";
 import type { Property } from "../types/property";
 
 interface PropertyCardProps {
   property: Property;
 }
 
-export const PropertyCard: React.FC<PropertyCardProps> = ({ property }) => {
+export const PropertyCard: React.FC<PropertyCardProps> = React.memo(({ property }) => {
+  const formattedPrice =
+    typeof property.price === "number"
+      ? property.price.toLocaleString()
+      : property.price;
+
   return (
     <div className="bg-white border border-gray-200 rounded-none overflow-hidden shadow-none hover:border-gray-400 transition-all duration-300 group flex flex-col justify-between">
       {/* Image Container */}
@@ -25,7 +31,7 @@ export const PropertyCard: React.FC<PropertyCardProps> = ({ property }) => {
           }}
         />
 
-        {/* Crisp Square Badges */}
+        {/* Badges */}
         <div className="absolute top-3 left-3 flex flex-wrap gap-2 z-10 rounded-none">
           {property.isFeatured && (
             <span className="bg-[#0f382c] text-white text-[10px] font-semibold px-2.5 py-1 tracking-wider uppercase rounded-none">
@@ -37,11 +43,11 @@ export const PropertyCard: React.FC<PropertyCardProps> = ({ property }) => {
           </span>
         </div>
 
-        {/* Square Favorite Button */}
+        {/* Favorite Button */}
         <button
           type="button"
           aria-label="Save property"
-          className="absolute top-3 right-3 p-2 bg-white/90 hover:bg-white text-gray-700 hover:text-red-500 transition rounded-none shadow-none"
+          className="absolute top-3 right-3 p-2 bg-white/90 hover:bg-white text-gray-700 hover:text-red-500 transition rounded-none shadow-none cursor-pointer"
         >
           <Heart className="w-4 h-4" />
         </button>
@@ -50,8 +56,12 @@ export const PropertyCard: React.FC<PropertyCardProps> = ({ property }) => {
       {/* Details Section */}
       <div className="p-5 rounded-none flex-1 flex flex-col justify-between">
         <div>
+          {/* Price & Currency */}
           <div className="text-base font-extrabold text-[#0f382c] mb-1">
-            {property.price}
+            {formattedPrice} {property.currency}
+            {property.purpose === "rent" && property.pricePeriod
+              ? ` / ${property.pricePeriod}`
+              : ""}
           </div>
 
           <h3 className="text-sm font-bold text-gray-900 line-clamp-1 mb-2 group-hover:text-[#0f382c] transition-colors">
@@ -64,22 +74,32 @@ export const PropertyCard: React.FC<PropertyCardProps> = ({ property }) => {
           </div>
         </div>
 
-        {/* Features Specs Bar */}
-        <div className="pt-3 border-t border-gray-100 flex items-center justify-between text-xs text-gray-600 font-medium rounded-none">
-          <div className="flex items-center space-x-1.5">
-            <Bed className="w-3.5 h-3.5 text-gray-400" />
-            <span>{property.bedrooms} Beds</span>
+        <div className="mt-auto">
+          {/* Features Specs Bar */}
+          <div className="pt-3 border-t border-gray-100 flex items-center justify-between text-xs text-gray-600 font-medium rounded-none mb-4">
+            <div className="flex items-center space-x-1.5">
+              <Bed className="w-3.5 h-3.5 text-gray-400" />
+              <span>{property.bedrooms} Beds</span>
+            </div>
+            <div className="flex items-center space-x-1.5">
+              <Bath className="w-3.5 h-3.5 text-gray-400" />
+              <span>{property.bathrooms} Baths</span>
+            </div>
+            <div className="flex items-center space-x-1.5">
+              <Move className="w-3.5 h-3.5 text-gray-400" />
+              <span>{property.areaSqM} m²</span>
+            </div>
           </div>
-          <div className="flex items-center space-x-1.5">
-            <Bath className="w-3.5 h-3.5 text-gray-400" />
-            <span>{property.bathrooms} Baths</span>
-          </div>
-          <div className="flex items-center space-x-1.5">
-            <Move className="w-3.5 h-3.5 text-gray-400" />
-            <span>{property.areaSqM} m²</span>
-          </div>
+
+          {/* Contact Action Link */}
+          <Link
+            to={`/contact?propertyId=${property.id}`}
+            className="w-full text-center py-2.5 bg-[#0f382c] hover:bg-[#0b2920] text-white text-sm font-semibold block transition duration-200 rounded-none shadow-none"
+          >
+            {property.purpose === "rent" ? "Rent Now" : "Buy Now"}
+          </Link>
         </div>
       </div>
     </div>
   );
-};
+});

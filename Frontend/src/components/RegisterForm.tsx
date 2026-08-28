@@ -4,8 +4,7 @@ import { Input } from "./common/Input";
 import { Button } from "./common/Button";
 import api from "../api/axios";
 import axios from "axios";
-import { useNavigate } from "react-router-dom";
-
+import { useNavigate, Link } from "react-router-dom";
 
 export const RegisterForm: React.FC = () => {
   const [formData, setFormData] = useState({
@@ -13,10 +12,9 @@ export const RegisterForm: React.FC = () => {
     email: "",
     password: "",
   });
-  const [isSubmitted, setIsSubmitted] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
-  const navigate = useNavigate()
+  const navigate = useNavigate();
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFormData((prev) => ({ ...prev, [e.target.name]: e.target.value }));
@@ -31,29 +29,32 @@ export const RegisterForm: React.FC = () => {
     try {
       const response = await api.post("/Auth/register", formData);
 
-      console.log(response.data);
-
-      setIsSubmitted(true);
+      // Save auth token/session if your API returns one upon registration
+      if (response.data?.token) {
+        localStorage.setItem("token", response.data.token);
+      }
 
       setFormData({
         name: "",
         email: "",
         password: "",
       });
+
+      // Redirect directly to properties on success
+      navigate("/properties");
     } catch (error: unknown) {
       console.error(error);
 
       if (axios.isAxiosError(error)) {
         setError(
           error.response?.data?.detail ||
-            "Something went wrong. Please try again.",
+            "Something went wrong. Please try again."
         );
       } else {
         setError("An unexpected error occurred.");
       }
     } finally {
       setLoading(false);
-      navigate("/login")
     }
   };
 
@@ -69,73 +70,63 @@ export const RegisterForm: React.FC = () => {
         </p>
       </div>
 
-      {isSubmitted ? (
-        <div className="p-4 bg-emerald-50 rounded-none! border border-emerald-200 text-center">
-          <p className="text-xs font-semibold text-emerald-800">
-            Account Created Successfully!
-          </p>
-          <p className="text-[11px] text-emerald-600 mt-0.5">
-            You can now explore and save properties.
-          </p>
-        </div>
-      ) : (
-        <form onSubmit={handleSubmit} className="space-y-4">
-          {error && (
-            <div className="p-3 bg-red-50 border border-red-200 text-red-700 text-xs">
-              {error}
-            </div>
-          )}
-          <Input
-            id="name"
-            type="text"
-            name="name"
-            label="Username"
-            icon={<User className="w-4 h-4" />}
-            placeholder="Enter your username"
-            value={formData.name}
-            onChange={handleChange}
-            required
-          />
+      <form onSubmit={handleSubmit} className="space-y-4">
+        {error && (
+          <div className="p-3 bg-red-50 border border-red-200 text-red-700 text-xs">
+            {error}
+          </div>
+        )}
+        
+        <Input
+          id="name"
+          type="text"
+          name="name"
+          label="Username"
+          icon={<User className="w-4 h-4" />}
+          placeholder="Enter your username"
+          value={formData.name}
+          onChange={handleChange}
+          required
+        />
 
-          <Input
-            id="email"
-            type="email"
-            name="email"
-            label="Email"
-            icon={<Mail className="w-4 h-4" />}
-            placeholder="Enter your email address"
-            value={formData.email}
-            onChange={handleChange}
-            required
-          />
+        <Input
+          id="email"
+          type="email"
+          name="email"
+          label="Email"
+          icon={<Mail className="w-4 h-4" />}
+          placeholder="Enter your email address"
+          value={formData.email}
+          onChange={handleChange}
+          required
+        />
 
-          <Input
-            id="password"
-            type="password"
-            name="password"
-            label="Password"
-            icon={<Lock className="w-4 h-4" />}
-            placeholder="Enter your password"
-            value={formData.password}
-            onChange={handleChange}
-            minLength={6}
-            required
-          />
+        <Input
+          id="password"
+          type="password"
+          name="password"
+          label="Password"
+          icon={<Lock className="w-4 h-4" />}
+          placeholder="Enter your password"
+          value={formData.password}
+          onChange={handleChange}
+          minLength={6}
+          required
+        />
 
-          <Button type="submit">
-            {loading ? "Creating Account..." : "Create Account"}
-          </Button>
-        </form>
-      )}
+        <Button type="submit">
+          {loading ? "Creating Account..." : "Create Account"}
+        </Button>
+      </form>
 
       <div className="mt-6 text-center text-xs text-gray-500">
         Already have an account?{" "}
-        <a
-          href="/login"
+        <Link
+          to="/login"
           className="font-semibold text-[#0f382c] hover:underline"
         >
           Sign in
-        </a>
+        </Link>
       </div>
     </div>
   );

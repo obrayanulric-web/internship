@@ -8,13 +8,14 @@ import { ContactPage } from './pages/ContactPage';
 import { RegisterPage } from './pages/RegisterPage';
 import { SignInPage } from './pages/SignInPage';
 import { CreatePropertyPage } from './pages/CreatePropertyPage';
+import { DashboardPage } from './pages/DashboardPage';
 
 export const App: React.FC = () => {
   return (
     <Router>
       <div className="flex flex-col min-h-screen font-sans bg-[#fafafa] text-gray-900 antialiased">
         <Navbar />
-        <main className="flex grow">
+        <main>
           <Routes>
             <Route path="/" element={<HomePage />} />
             <Route path="/properties" element={<PropertiesPage />} />
@@ -22,6 +23,7 @@ export const App: React.FC = () => {
             <Route path="/register" element={<RegisterPage />} />
             <Route path='/login' element={<SignInPage/>}/>
             <Route path='/create-properties' element={<CreatePropertyPage/>}/>
+            <Route path='/dashboard' element={<DashboardPage/>}/>
           </Routes>
         </main>
         <Footer />

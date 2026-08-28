@@ -17,16 +17,16 @@ import axios from "axios";
 export const CreatePropertyForm: React.FC = () => {
   const [formData, setFormData] = useState({
     title: "",
-    location: "",
-    city: "Douala",
-    currency: "XAF",
+    neighborhood: "",
+    city: "Yaoundé",
+    currency: "FCFA",
     price: "",
-    purpose: "sale",
+    purpose: "rent",
     type: "Apartment",
     bedrooms: "1",
     bathrooms: "1",
     pricePeriod: "month",
-    areaSqM: 0,
+    areaSqM: "",
     imageUrl: "",
     description: "",
   });
@@ -38,7 +38,7 @@ export const CreatePropertyForm: React.FC = () => {
   const handleChange = (
     e: React.ChangeEvent<
       HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement
-    >,
+    >
   ) => {
     setFormData((prev) => ({ ...prev, [e.target.name]: e.target.value }));
   };
@@ -48,31 +48,50 @@ export const CreatePropertyForm: React.FC = () => {
     setLoading(true);
     setError("");
 
+    // Construct full location string matching mock data ("Neighborhood, City")
+    const fullLocation = formData.neighborhood.trim()
+      ? `${formData.neighborhood.trim()}, ${formData.city}`
+      : formData.city;
+
+    const payload = {
+      title: formData.title,
+      location: fullLocation,
+      city: formData.city,
+      currency: formData.currency,
+      price: Number(formData.price),
+      purpose: formData.purpose,
+      type: formData.type,
+      bedrooms: Number(formData.bedrooms),
+      bathrooms: Number(formData.bathrooms),
+      pricePeriod: formData.pricePeriod,
+      areaSqM: Number(formData.areaSqM) || 0,
+      imageUrl: formData.imageUrl,
+      description: formData.description,
+    };
+
     try {
-      const response = await api.post("/Property", formData);
-      console.log(response.data);
+      const response = await api.post("/Property", payload);
+      console.log("Created property:", response.data);
 
       setIsSubmitted(true);
       setFormData({
         title: "",
-        location: "",
-        city: "Douala",
-        currency: "XAF",
+        neighborhood: "",
+        city: "Yaoundé",
+        currency: "FCFA",
         price: "",
-        purpose: "sale",
+        purpose: "rent",
         type: "Apartment",
         bedrooms: "1",
         bathrooms: "1",
         pricePeriod: "month",
-        areaSqM: 0,
+        areaSqM: "",
         imageUrl: "",
         description: "",
       });
     } catch (error: unknown) {
       if (axios.isAxiosError(error)) {
         const detail = error.response?.data?.detail;
-
-        console.log("Backend validation error:", detail);
 
         if (Array.isArray(detail)) {
           setError(
@@ -81,7 +100,7 @@ export const CreatePropertyForm: React.FC = () => {
                 const field = item.loc?.[item.loc.length - 1];
                 return `${field}: ${item.msg}`;
               })
-              .join(", "),
+              .join(", ")
           );
         } else if (typeof detail === "string") {
           setError(detail);
@@ -91,6 +110,8 @@ export const CreatePropertyForm: React.FC = () => {
       } else {
         setError("An unexpected error occurred.");
       }
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -117,30 +138,34 @@ export const CreatePropertyForm: React.FC = () => {
         </div>
       ) : (
         <form onSubmit={handleSubmit} className="space-y-4">
-          <div className="p-3 bg-red-50 border border-red-200 text-red-700 text-xs">
-            {error}
-          </div>
+          {error && (
+            <div className="p-3 bg-red-50 border border-red-200 text-red-700 text-xs">
+              {error}
+            </div>
+          )}
+
           <Input
             id="title"
             type="text"
             name="title"
             label="Property Title"
             icon={<Building2 className="w-4 h-4" />}
-            placeholder="e.g. Modern Luxury Villa with Pool"
+            placeholder="e.g. Modern 2 Bedroom Apartment"
             value={formData.title}
             onChange={handleChange}
             required
           />
 
+          {/* Neighborhood & City (Constructs "Neighborhood, City" e.g. "Bastos, Yaoundé") */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <Input
-              id="location"
+              id="neighborhood"
               type="text"
-              name="location"
-              label="Address / Neighborhood"
+              name="neighborhood"
+              label="Neighborhood / Area"
               icon={<MapPin className="w-4 h-4" />}
-              placeholder="e.g. Bonapriso"
-              value={formData.location}
+              placeholder="e.g. Bastos or Bonapriso"
+              value={formData.neighborhood}
               onChange={handleChange}
               required
             />
@@ -155,39 +180,47 @@ export const CreatePropertyForm: React.FC = () => {
                 onChange={handleChange}
                 className="w-full px-3 py-2.5 bg-gray-50/50 border border-gray-200 rounded-none text-xs text-gray-900 focus:outline-none focus:ring-1 focus:ring-[#0f382c] focus:bg-white transition"
               >
+                <option value="Yaoundé">Yaoundé</option>
                 <option value="Douala">Douala</option>
-                <option value="Yaounde">Yaoundé</option>
                 <option value="Kribi">Kribi</option>
-                <option value="Limbe">Limbé</option>
+                <option value="Limbé">Limbé</option>
                 <option value="Bamenda">Bamenda</option>
                 <option value="Bafoussam">Bafoussam</option>
               </select>
             </div>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-            <Input
-              id="price"
-              type="number"
-              name="price"
-              label="Price (XAF)"
-              icon={<DollarSign className="w-4 h-4" />}
-              placeholder="e.g. 250000"
-              value={formData.price}
-              onChange={handleChange}
-              required
-            />
-            <Input
-              id="currency"
-              type="text"
-              name="currency"
-              label="currency (XAF)"
-              icon={<DollarSign className="w-4 h-4" />}
-              placeholder="e.g. 250000"
-              value={formData.currency}
-              onChange={handleChange}
-              required
-            />
+          <div className="grid grid-cols-1 sm:grid-cols-4 gap-4">
+            <div className="sm:col-span-2">
+              <Input
+                id="price"
+                type="number"
+                name="price"
+                label="Price"
+                icon={<DollarSign className="w-4 h-4" />}
+                placeholder="e.g. 150000"
+                value={formData.price}
+                onChange={handleChange}
+                required
+              />
+            </div>
+
+            <div className="rounded-none">
+              <label className="block text-xs font-semibold text-gray-700 uppercase tracking-wider mb-1.5">
+                Currency
+              </label>
+              <select
+                name="currency"
+                value={formData.currency}
+                onChange={handleChange}
+                className="w-full px-3 py-2.5 bg-gray-50/50 border border-gray-200 rounded-none text-xs text-gray-900 focus:outline-none focus:ring-1 focus:ring-[#0f382c] focus:bg-white transition"
+              >
+                <option value="FCFA">FCFA</option>
+                <option value="XAF">XAF</option>
+                <option value="USD">USD</option>
+              </select>
+            </div>
+
             <div className="rounded-none">
               <label className="block text-xs font-semibold text-gray-700 uppercase tracking-wider mb-1.5">
                 Price Period
@@ -202,7 +235,9 @@ export const CreatePropertyForm: React.FC = () => {
                 <option value="year">Yearly</option>
               </select>
             </div>
+          </div>
 
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div className="rounded-none">
               <label className="block text-xs font-semibold text-gray-700 uppercase tracking-wider mb-1.5">
                 Purpose
@@ -213,8 +248,8 @@ export const CreatePropertyForm: React.FC = () => {
                 onChange={handleChange}
                 className="w-full px-3 py-2.5 bg-gray-50/50 border border-gray-200 rounded-none text-xs text-gray-900 focus:outline-none focus:ring-1 focus:ring-[#0f382c] focus:bg-white transition"
               >
-                <option value="sale">For Sale</option>
                 <option value="rent">For Rent</option>
+                <option value="sale">For Sale</option>
               </select>
             </div>
 
@@ -222,7 +257,12 @@ export const CreatePropertyForm: React.FC = () => {
               <label className="block text-xs font-semibold text-gray-700 uppercase tracking-wider mb-1.5">
                 Property Type
               </label>
-              <select name="type" value={formData.type} onChange={handleChange}>
+              <select
+                name="type"
+                value={formData.type}
+                onChange={handleChange}
+                className="w-full px-3 py-2.5 bg-gray-50/50 border border-gray-200 rounded-none text-xs text-gray-900 focus:outline-none focus:ring-1 focus:ring-[#0f382c] focus:bg-white transition"
+              >
                 <option value="Apartment">Apartment</option>
                 <option value="Villa">Villa</option>
                 <option value="Duplex">Duplex</option>
@@ -239,7 +279,7 @@ export const CreatePropertyForm: React.FC = () => {
               name="bedrooms"
               label="Bedrooms"
               icon={<Bed className="w-4 h-4" />}
-              placeholder="1"
+              placeholder="2"
               value={formData.bedrooms}
               onChange={handleChange}
               required
@@ -251,7 +291,7 @@ export const CreatePropertyForm: React.FC = () => {
               name="bathrooms"
               label="Bathrooms"
               icon={<Bath className="w-4 h-4" />}
-              placeholder="1"
+              placeholder="2"
               value={formData.bathrooms}
               onChange={handleChange}
               required
@@ -263,11 +303,12 @@ export const CreatePropertyForm: React.FC = () => {
               name="areaSqM"
               label="Area (m²)"
               icon={<Maximize className="w-4 h-4" />}
-              placeholder="e.g. 150"
+              placeholder="e.g. 120"
               value={formData.areaSqM}
               onChange={handleChange}
             />
           </div>
+
           <Input
             id="imageUrl"
             type="url"
@@ -284,17 +325,15 @@ export const CreatePropertyForm: React.FC = () => {
             <label className="block text-xs font-semibold text-gray-700 uppercase tracking-wider mb-1.5">
               Description
             </label>
-            <div className="relative rounded-none">
-              <textarea
-                name="description"
-                rows={4}
-                placeholder="Describe key features, amenities, and surroundings..."
-                value={formData.description}
-                onChange={handleChange}
-                required
-                className="w-full p-3 bg-gray-50/50 border border-gray-200 rounded-none text-xs text-gray-900 focus:outline-none focus:ring-1 focus:ring-[#0f382c] focus:bg-white transition resize-none"
-              />
-            </div>
+            <textarea
+              name="description"
+              rows={4}
+              placeholder="Describe key features, amenities, and surroundings..."
+              value={formData.description}
+              onChange={handleChange}
+              required
+              className="w-full p-3 bg-gray-50/50 border border-gray-200 rounded-none text-xs text-gray-900 focus:outline-none focus:ring-1 focus:ring-[#0f382c] focus:bg-white transition resize-none"
+            />
           </div>
 
           <div className="pt-2">

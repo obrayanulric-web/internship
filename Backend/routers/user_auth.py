@@ -14,7 +14,7 @@ router = APIRouter(
     dependencies=[Depends(get_current_user)]
 )
 
-@router.get("/")
+@router.get("/users")
 def get_all_users(db: Session = Depends(get_db)):
     users = db.query(Users).all()
 

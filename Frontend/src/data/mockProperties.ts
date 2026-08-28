@@ -1,4 +1,4 @@
-// src/data/mockProperties.ts
+
 import type { Property } from '../types/property';
 
 

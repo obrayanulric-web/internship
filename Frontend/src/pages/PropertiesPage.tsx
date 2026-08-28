@@ -13,7 +13,6 @@ const ITEMS_PER_PAGE = 6;
 export const PropertiesPage: React.FC = () => {
   const [searchParams] = useSearchParams();
 
-  // Initial Filter State synced with URL search params
   const [filters, setFilters] = useState<PropertyFilterState>({
     searchQuery: searchParams.get("location") || "",
     purpose: (searchParams.get("purpose") as any) || "all",
@@ -30,13 +29,12 @@ export const PropertiesPage: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [fetchError, setFetchError] = useState("");
 
-  // Update specific filter property
   const handleFilterChange = <K extends keyof PropertyFilterState>(
     key: K,
-    value: PropertyFilterState[K],
+    value: PropertyFilterState[K]
   ) => {
     setFilters((prev) => ({ ...prev, [key]: value }));
-    setCurrentPage(1); // Reset to page 1 on filter update
+    setCurrentPage(1);
   };
 
   const handleClearFilters = () => {
@@ -52,7 +50,6 @@ export const PropertiesPage: React.FC = () => {
     setCurrentPage(1);
   };
 
-  // Filter & Sort Logic
   const filteredProperties = useMemo(() => {
     return properties
       .filter((property) => {
@@ -113,18 +110,12 @@ export const PropertiesPage: React.FC = () => {
     const fetchProperties = async () => {
       try {
         setLoading(true);
-
         const response = await api.get("/Property/");
-
-        console.log(response.data);
-
         setProperties(response.data);
       } catch (error) {
-        console.error(error);
-
         if (axios.isAxiosError(error)) {
           setFetchError(
-            error.response?.data?.detail || "Failed to fetch properties",
+            error.response?.data?.detail || "Failed to fetch properties"
           );
         } else {
           setFetchError("Something went wrong");
@@ -137,7 +128,6 @@ export const PropertiesPage: React.FC = () => {
     fetchProperties();
   }, []);
 
-  // Pagination calculation
   const totalPages = Math.ceil(filteredProperties.length / ITEMS_PER_PAGE);
   const displayedProperties = useMemo(() => {
     const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
@@ -147,7 +137,6 @@ export const PropertiesPage: React.FC = () => {
   return (
     <div className="bg-[#fafafa] min-h-screen py-8 md:py-12 rounded-none">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 rounded-none">
-        {/* Header Title Bar */}
         <div className="mb-8 rounded-none">
           <h1 className="text-3xl font-extrabold text-gray-900 tracking-tight">
             Find your next home
@@ -157,11 +146,10 @@ export const PropertiesPage: React.FC = () => {
           </p>
         </div>
 
-        {/* Mobile Filter Toggle Button */}
         <div className="lg:hidden mb-6 flex justify-between items-center bg-white p-3 border border-gray-200 rounded-none shadow-none">
           <button
             onClick={() => setIsMobileFilterOpen(true)}
-            className="flex items-center gap-2 text-sm font-semibold text-[#0f382c] rounded-none"
+            className="flex items-center gap-2 text-sm font-semibold text-[#0f382c] rounded-none cursor-pointer"
           >
             <SlidersHorizontal className="w-4 h-4" />
             Filters
@@ -172,7 +160,6 @@ export const PropertiesPage: React.FC = () => {
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start rounded-none">
-          {/* Desktop Left Sidebar Filters */}
           <div className="hidden lg:block lg:col-span-4 xl:col-span-3 sticky top-24 rounded-none">
             <FilterSidebar
               filters={filters}
@@ -182,9 +169,7 @@ export const PropertiesPage: React.FC = () => {
             />
           </div>
 
-          {/* Right Properties Display Section */}
           <div className="lg:col-span-8 xl:col-span-9 space-y-6 rounded-none">
-            {/* Top Toolbar: Search Count & Sort Dropdown */}
             <div className="bg-white p-4 border border-gray-200 shadow-none rounded-none flex flex-col sm:flex-row sm:items-center justify-between gap-4">
               <span className="text-sm font-medium text-gray-700">
                 Showing{" "}
@@ -211,25 +196,16 @@ export const PropertiesPage: React.FC = () => {
                 </select>
               </div>
             </div>
+
             {loading ? (
               <div className="bg-white p-12 border border-gray-200 text-center">
-                <p>Loading properties...</p>
+                <p className="text-xs text-gray-500">Loading properties...</p>
               </div>
             ) : fetchError ? (
               <div className="bg-red-50 p-12 border border-red-200 text-center">
-                <p className="text-red-700">{fetchError}</p>
+                <p className="text-xs text-red-700">{fetchError}</p>
               </div>
             ) : displayedProperties.length > 0 ? (
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3 gap-6">
-                {displayedProperties.map((property) => (
-                  <PropertyCard key={property.id} property={property} />
-                ))}
-              </div>
-            ) : (
-              <div>No properties found</div>
-            )}
-            {/* Property Cards Grid */}
-            {displayedProperties.length > 0 ? (
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3 gap-6 rounded-none">
                 {displayedProperties.map((property) => (
                   <PropertyCard key={property.id} property={property} />
@@ -253,7 +229,6 @@ export const PropertiesPage: React.FC = () => {
               </div>
             )}
 
-            {/* Pagination Controls */}
             {totalPages > 1 && (
               <div className="flex items-center justify-center space-x-2 pt-6 rounded-none">
                 <button
@@ -261,7 +236,7 @@ export const PropertiesPage: React.FC = () => {
                     setCurrentPage((prev) => Math.max(prev - 1, 1))
                   }
                   disabled={currentPage === 1}
-                  className="p-2 border border-gray-200 rounded-none bg-white text-gray-600 hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed"
+                  className="p-2 border border-gray-200 rounded-none bg-white text-gray-600 hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer"
                 >
                   <ChevronLeft className="w-4 h-4" />
                 </button>
@@ -272,7 +247,7 @@ export const PropertiesPage: React.FC = () => {
                     <button
                       key={pageNum}
                       onClick={() => setCurrentPage(pageNum)}
-                      className={`w-9 h-9 text-xs font-semibold border transition rounded-none ${
+                      className={`w-9 h-9 text-xs font-semibold border transition rounded-none cursor-pointer ${
                         currentPage === pageNum
                           ? "bg-[#0f382c] text-white border-[#0f382c]"
                           : "bg-white text-gray-700 border-gray-200 hover:bg-gray-50"
@@ -288,7 +263,7 @@ export const PropertiesPage: React.FC = () => {
                     setCurrentPage((prev) => Math.min(prev + 1, totalPages))
                   }
                   disabled={currentPage === totalPages}
-                  className="p-2 border border-gray-200 rounded-none bg-white text-gray-600 hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed"
+                  className="p-2 border border-gray-200 rounded-none bg-white text-gray-600 hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer"
                 >
                   <ChevronRight className="w-4 h-4" />
                 </button>
@@ -298,7 +273,6 @@ export const PropertiesPage: React.FC = () => {
         </div>
       </div>
 
-      {/* Mobile Sidebar Filter Drawer */}
       {isMobileFilterOpen && (
         <div className="fixed inset-0 z-50 flex lg:hidden rounded-none">
           <div
@@ -313,7 +287,7 @@ export const PropertiesPage: React.FC = () => {
                 </h2>
                 <button
                   onClick={() => setIsMobileFilterOpen(false)}
-                  className="p-1 text-gray-400 hover:text-gray-700 rounded-none"
+                  className="p-1 text-gray-400 hover:text-gray-700 rounded-none cursor-pointer"
                 >
                   <X className="w-5 h-5" />
                 </button>
@@ -330,7 +304,7 @@ export const PropertiesPage: React.FC = () => {
             <div className="pt-6 border-t border-gray-100 mt-6 rounded-none">
               <button
                 onClick={() => setIsMobileFilterOpen(false)}
-                className="w-full py-2.5 bg-[#0f382c] text-white text-sm font-medium rounded-none"
+                className="w-full py-2.5 bg-[#0f382c] text-white text-sm font-medium rounded-none cursor-pointer"
               >
                 Apply Filters
               </button>
